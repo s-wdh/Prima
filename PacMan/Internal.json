@@ -21469,10 +21469,84 @@
             },
             "children": []
           }
+        },
+        {
+          "ƒ.Node": {
+            "name": "Sound",
+            "active": true,
+            "components": {
+              "ComponentAudioListener": [
+                {
+                  "ƒ.ComponentAudioListener": {
+                    "active": true
+                  }
+                }
+              ],
+              "ComponentAudio": []
+            },
+            "children": [
+              {
+                "ƒ.Node": {
+                  "name": "Intro",
+                  "active": true,
+                  "components": {
+                    "ComponentAudio": [
+                      {
+                        "ƒ.ComponentAudio": {
+                          "active": true,
+                          "idResource": "Audio|2022-03-31T12:46:43.900Z|83931",
+                          "playing": true,
+                          "loop": false,
+                          "volume": 1
+                        }
+                      }
+                    ]
+                  },
+                  "children": []
+                }
+              },
+              {
+                "ƒ.Node": {
+                  "name": "Chomp",
+                  "active": true,
+                  "components": {
+                    "ComponentAudio": [
+                      {
+                        "ƒ.ComponentAudio": {
+                          "active": true,
+                          "idResource": "Audio|2022-03-31T12:48:01.972Z|02280",
+                          "playing": false,
+                          "loop": false,
+                          "volume": 1
+                        }
+                      }
+                    ]
+                  },
+                  "children": []
+                }
+              }
+            ]
+          }
         }
       ],
       "idResource": "Graph|2022-03-24T10:23:11.229Z|28752",
       "type": "Graph"
+    }
+  },
+  "Audio|2022-03-31T12:46:43.900Z|83931": {
+    "ƒ.Audio": {
+      "url": "Sound\\pacman_beginning.wav",
+      "idResource": "Audio|2022-03-31T12:46:43.900Z|83931",
+      "name": "IntroMusic",
+      "type": "Audio"
+    }
+  },
+  "Audio|2022-03-31T12:48:01.972Z|02280": {
+    "ƒ.Audio": {
+      "url": "Sound\\pacman_chomp.wav",
+      "idResource": "Audio|2022-03-31T12:48:01.972Z|02280",
+      "name": "Chomp",
+      "type": "Audio"
     }
   }
 }
