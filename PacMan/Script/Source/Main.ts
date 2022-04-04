@@ -83,19 +83,15 @@ namespace Script {
   function update(_event: Event): void {
     // ƒ.Physics.simulate();  // if physics is included and used
     positionPacman = pacman.mtxLocal.translation;
-    let nearestGridPoint: ƒ.Vector2 = new ƒ.Vector2(Math.round(positionPacman.x), Math.round(positionPacman.y));
-    let nearGridPoint: boolean = positionPacman.toVector2().equals(nearestGridPoint, 3 * speed);
 
-    if (nearGridPoint) {
-      if (ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.ARROW_RIGHT, ƒ.KEYBOARD_CODE.D]))
-        direction.set(1, 0, 0);
-      if (ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.ARROW_LEFT, ƒ.KEYBOARD_CODE.A]))
-        direction.set(-1, 0, 0);
-      if (ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.ARROW_UP, ƒ.KEYBOARD_CODE.W]))
-        direction.set(0, 1, 0);
-      if (ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.ARROW_DOWN, ƒ.KEYBOARD_CODE.S]))
-        direction.set(0, -1, 0);
-    }
+    if (ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.ARROW_RIGHT, ƒ.KEYBOARD_CODE.D]) && (pacman.mtxLocal.translation.y + 0.025) % 1 < 0.05)
+      direction.set(1, 0, 0);
+    if (ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.ARROW_LEFT, ƒ.KEYBOARD_CODE.A]) && (pacman.mtxLocal.translation.y + 0.025) % 1 < 0.05)
+      direction.set(-1, 0, 0);
+    if (ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.ARROW_UP, ƒ.KEYBOARD_CODE.W]) && (pacman.mtxLocal.translation.x + 0.025) % 1 < 0.05)
+      direction.set(0, 1, 0);
+    if (ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.ARROW_DOWN, ƒ.KEYBOARD_CODE.S]) && (pacman.mtxLocal.translation.x + 0.025) % 1 < 0.05)
+      direction.set(0, -1, 0);
 
 
     if (!checkPath()) {
@@ -115,17 +111,17 @@ namespace Script {
 
   function checkPath(): boolean {
     //check if next element is a path or wall
-    let row: ƒ.Node = grid.getChild(Math.trunc(positionPacman.y) + direction.y);
-    if (row) {
-      let nextElement: ƒ.Node = row.getChild(Math.trunc(positionPacman.x) + direction.x);
-      if (nextElement) {
-        let nextElementMesh: ƒ.Component = nextElement.getComponent(ƒ.ComponentMesh);
-        let nextElementColor: ƒ.Color = nextElementMesh.node.getComponent(ƒ.ComponentMaterial).clrPrimary;
-        console.log(nextElementColor);
-        if (nextElementColor.r == 1 && nextElementColor.g == 1 && nextElementColor.b == 1 && nextElementColor.a == 1) {
-          return true;
-        }
-      }
+    let rowNumber: number = Math.trunc(positionPacman.y) + direction.y;
+    let nextElementNumber: number = Math.trunc(positionPacman.x) + direction.x;
+    if (!nextElementNumber || !rowNumber || nextElementNumber < 1 || nextElementNumber > 23 || rowNumber < 1 || rowNumber > 13) {
+      return false;
+    }
+    let nextElement: ƒ.Node = grid.getChild(rowNumber).getChild(nextElementNumber);
+    let nextElementMesh: ƒ.Component = nextElement.getComponent(ƒ.ComponentMesh);
+    let nextElementColor: ƒ.Color = nextElementMesh.node.getComponent(ƒ.ComponentMaterial).clrPrimary;
+    console.log(nextElementColor);
+    if (nextElementColor.r == 1 && nextElementColor.g == 1 && nextElementColor.b == 1 && nextElementColor.a == 1) {
+      return true;
     }
     return false;
   } //checkpath
