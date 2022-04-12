@@ -38,7 +38,28 @@ var Script;
 })(Script || (Script = {}));
 var Script;
 (function (Script) {
+    class Ghost {
+        constructor() {
+            let node = new ƒ.Node("Ghost");
+            let mesh = new ƒ.MeshSphere();
+            let material = new ƒ.Material("Ghost", ƒ.ShaderLit, new ƒ.CoatColored());
+            let cmpMesh = new ƒ.ComponentMesh(mesh);
+            let cmpMaterial = new ƒ.ComponentMaterial(material);
+            let cmpTransform = new ƒ.ComponentTransform();
+            node.addComponent(cmpMesh);
+            node.addComponent(cmpMaterial);
+            node.addComponent(cmpTransform);
+            cmpMaterial.clrPrimary = new ƒ.Color(255, 0, 0, 1);
+            //cmpMaterial.clrPrimary = ƒ.Color.CSS("red");  //alternative color change by css
+            node.mtxLocal.translate(new ƒ.Vector3(2, 1, 0));
+        }
+    }
+    Script.Ghost = Ghost;
+})(Script || (Script = {}));
+var Script;
+(function (Script) {
     var ƒ = FudgeCore;
+    var ƒAid = FudgeAid;
     ƒ.Debug.info("Main Program Template running!");
     let dialog;
     let viewport;
@@ -49,6 +70,9 @@ var Script;
     let speed = 1 / 60;
     let direction = ƒ.Vector3.ZERO();
     let chomp;
+    let spritePacman;
+    let ghost;
+    let ghostWalk = new ƒ.Vector3(1, 0, 0);
     document.addEventListener("interactiveViewportStarted", start);
     window.addEventListener("load", init);
     function init(_event) {
@@ -95,34 +119,37 @@ var Script;
         viewport.draw();
         canvas.dispatchEvent(new CustomEvent("interactiveViewportStarted", { bubbles: true, detail: viewport }));
     }
-    function start(_event) {
+    async function start(_event) {
         viewport = _event.detail;
         viewport.camera.mtxPivot.translate(new ƒ.Vector3(12, 7, 27));
         viewport.camera.mtxPivot.rotateY(180);
         graph = viewport.getBranch();
-        pacman = graph.getChildrenByName("PacMan")[0];
         grid = graph.getChildrenByName("Grid")[0];
+        pacman = graph.getChildrenByName("PacMan")[0];
+        spritePacman = await createSprite();
+        pacman.addChild(spritePacman);
+        console.log(pacman);
+        pacman.getComponent(ƒ.ComponentMaterial).activate(false);
         chomp = graph.getChildrenByName("Sound")[0].getChildrenByName("Chomp")[0].getComponents(ƒ.ComponentAudio)[0];
-        //console.log(pacman.getComponent(ƒ.ComponentTransform));
+        ghost = createGhost();
+        graph.addChild(ghost);
         ƒ.Loop.addEventListener("loopFrame" /* LOOP_FRAME */, update);
+        ƒ.Loop.addEventListener("loopFrame" /* LOOP_FRAME */, ghostWalks);
         ƒ.Loop.start(); // start the game loop to continously draw the viewport, update the audiosystem and drive the physics i/a
     }
     function update(_event) {
         // ƒ.Physics.simulate();  // if physics is included and used
         positionPacman = pacman.mtxLocal.translation;
-        let nearestGridPoint = new ƒ.Vector2(Math.round(positionPacman.x), Math.round(positionPacman.y));
-        let nearGridPoint = positionPacman.toVector2().equals(nearestGridPoint, 3 * speed);
-        if (nearGridPoint) {
-            if (ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.ARROW_RIGHT, ƒ.KEYBOARD_CODE.D]))
-                direction.set(1, 0, 0);
-            if (ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.ARROW_LEFT, ƒ.KEYBOARD_CODE.A]))
-                direction.set(-1, 0, 0);
-            if (ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.ARROW_UP, ƒ.KEYBOARD_CODE.W]))
-                direction.set(0, 1, 0);
-            if (ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.ARROW_DOWN, ƒ.KEYBOARD_CODE.S]))
-                direction.set(0, -1, 0);
-        }
-        if (!checkPath()) {
+        if (ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.ARROW_RIGHT, ƒ.KEYBOARD_CODE.D]) && (pacman.mtxLocal.translation.y + 0.025) % 1 < 0.05)
+            direction.set(1, 0, 0);
+        if (ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.ARROW_LEFT, ƒ.KEYBOARD_CODE.A]) && (pacman.mtxLocal.translation.y + 0.025) % 1 < 0.05)
+            direction.set(-1, 0, 0);
+        if (ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.ARROW_UP, ƒ.KEYBOARD_CODE.W]) && (pacman.mtxLocal.translation.x + 0.025) % 1 < 0.05)
+            direction.set(0, 1, 0);
+        if (ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.ARROW_DOWN, ƒ.KEYBOARD_CODE.S]) && (pacman.mtxLocal.translation.x + 0.025) % 1 < 0.05)
+            direction.set(0, -1, 0);
+        rotatePacman(direction);
+        if (!checkPath(positionPacman, direction)) {
             direction.set(0, 0, 0);
         }
         pacman.mtxLocal.translate(ƒ.Vector3.SCALE(direction, speed));
@@ -135,21 +162,86 @@ var Script;
         viewport.draw();
         //ƒ.AudioManager.default.update();
     } //update
-    function checkPath() {
+    function checkPath(_position, _direction) {
         //check if next element is a path or wall
-        let row = grid.getChild(Math.trunc(positionPacman.y) + direction.y);
-        if (row) {
-            let nextElement = row.getChild(Math.trunc(positionPacman.x) + direction.x);
-            if (nextElement) {
-                let nextElementMesh = nextElement.getComponent(ƒ.ComponentMesh);
-                let nextElementColor = nextElementMesh.node.getComponent(ƒ.ComponentMaterial).clrPrimary;
-                console.log(nextElementColor);
-                if (nextElementColor.r == 1 && nextElementColor.g == 1 && nextElementColor.b == 1 && nextElementColor.a == 1) {
-                    return true;
-                }
-            }
+        if (!_position || !_direction) {
+            return false;
+        }
+        let rowNumber = Math.trunc(_position.y) + _direction.y;
+        let nextElementNumber = Math.trunc(_position.x) + _direction.x;
+        if (!nextElementNumber || !rowNumber || nextElementNumber < 1 || nextElementNumber > 23 || rowNumber < 1 || rowNumber > 13) {
+            return false;
+        }
+        let nextElement = grid.getChild(rowNumber).getChild(nextElementNumber);
+        let nextElementMesh = nextElement.getComponent(ƒ.ComponentMesh);
+        let nextElementColor = nextElementMesh.node.getComponent(ƒ.ComponentMaterial).clrPrimary;
+        //console.log(nextElementColor);
+        if (nextElementColor.r == 1 && nextElementColor.g == 1 && nextElementColor.b == 1 && nextElementColor.a == 1) {
+            return true;
         }
         return false;
     } //checkpath
+    function createGhost() {
+        let node = new ƒ.Node("Ghost");
+        let mesh = new ƒ.MeshSphere();
+        let material = new ƒ.Material("Ghost", ƒ.ShaderLit, new ƒ.CoatColored());
+        let cmpMesh = new ƒ.ComponentMesh(mesh);
+        let cmpMaterial = new ƒ.ComponentMaterial(material);
+        let cmpTransform = new ƒ.ComponentTransform();
+        node.addComponent(cmpMesh);
+        node.addComponent(cmpMaterial);
+        node.addComponent(cmpTransform);
+        cmpMaterial.clrPrimary = new ƒ.Color(255, 0, 0, 1);
+        //cmpMaterial.clrPrimary = ƒ.Color.CSS("red");  //alternative color change by css
+        node.mtxLocal.translate(new ƒ.Vector3(2, 7, 0));
+        return node;
+    } //createGhost
+    function ghostWalks() {
+        if (!checkPath(ghost.mtxLocal.translation, ghostWalk)) {
+            let ghostDirections = [new ƒ.Vector3(1, 0, 0), new ƒ.Vector3(-1, 0, 0), new ƒ.Vector3(0, 1, 0), new ƒ.Vector3(0, -1, 0)];
+            let random = Math.round(Math.random() * ghostDirections.length);
+            ghostWalk = ghostDirections[random];
+            while (!checkPath(ghost.mtxLocal.translation, ghostWalk)) {
+                ghostDirections.splice(ghostDirections.indexOf(ghostWalk), 1);
+                random = Math.round(Math.random() * ghostDirections.length);
+                ghostWalk = ghostDirections[random];
+            }
+        }
+        ghost.mtxLocal.translate(ƒ.Vector3.SCALE(ghostWalk, speed));
+    } //ghostWalks
+    async function createSprite() {
+        let imgSpriteSheet = new ƒ.TextureImage();
+        await imgSpriteSheet.load("Images/spriteSheet_Alida.png");
+        let coat = new ƒ.CoatTextured(undefined, imgSpriteSheet);
+        let animation = new ƒAid.SpriteSheetAnimation("Pacman", coat);
+        animation.generateByGrid(ƒ.Rectangle.GET(0, 0, 64, 64), 8, 70, ƒ.ORIGIN2D.CENTER, ƒ.Vector2.X(64));
+        let sprite = new ƒAid.NodeSprite("Sprite");
+        sprite.setAnimation(animation);
+        sprite.setFrameDirection(1);
+        sprite.framerate = 15;
+        let cmpTransfrom = new ƒ.ComponentTransform();
+        sprite.addComponent(cmpTransfrom);
+        sprite.cmpTransform.mtxLocal.translateZ(0.5);
+        return sprite;
+    } //createSprite
+    function rotatePacman(_direction) {
+        if (_direction.x != 0 || _direction.y != 0) {
+            let oldZ = spritePacman.mtxLocal.rotation.z;
+            let newZ = 360 - oldZ;
+            spritePacman.mtxLocal.rotateZ(newZ);
+            if (_direction.x == 1) {
+                spritePacman.mtxLocal.rotateZ(0);
+            }
+            if (_direction.x == -1) {
+                spritePacman.mtxLocal.rotateZ(180);
+            }
+            if (_direction.y == 1) {
+                spritePacman.mtxLocal.rotateZ(90);
+            }
+            if (_direction.y == -1) {
+                spritePacman.mtxLocal.rotateZ(270);
+            }
+        }
+    } //rotatePacman
 })(Script || (Script = {})); //namespace
 //# sourceMappingURL=Script.js.map

@@ -8,4 +8,9 @@ declare namespace Script {
     }
 }
 declare namespace Script {
+    class Ghost {
+        constructor();
+    }
+}
+declare namespace Script {
 }
