@@ -38,8 +38,9 @@ var Script;
 })(Script || (Script = {}));
 var Script;
 (function (Script) {
-    class Ghost {
+    class Ghost extends ƒ.Node {
         constructor() {
+            super("Ghost");
             let node = new ƒ.Node("Ghost");
             let mesh = new ƒ.MeshSphere();
             let material = new ƒ.Material("Ghost", ƒ.ShaderLit, new ƒ.CoatColored());
@@ -148,16 +149,22 @@ var Script;
             direction.set(0, 1, 0);
         if (ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.ARROW_DOWN, ƒ.KEYBOARD_CODE.S]) && (pacman.mtxLocal.translation.x + 0.025) % 1 < 0.05)
             direction.set(0, -1, 0);
-        rotatePacman(direction);
+        //rotatePacman(direction);
         if (!checkPath(positionPacman, direction)) {
             direction.set(0, 0, 0);
         }
         pacman.mtxLocal.translate(ƒ.Vector3.SCALE(direction, speed));
+        if (direction.magnitudeSquared != 0) {
+            //spritePacman.mtxLocal.reset();
+            spritePacman.mtxLocal.rotation = new ƒ.Vector3(0, direction.x < 0 ? 180 : 0, direction.y * 90);
+        }
         if (direction.equals(ƒ.Vector3.ZERO())) {
             chomp.play(false);
+            spritePacman.setFrameDirection(0);
         }
         else if (!chomp.isPlaying) {
             chomp.play(true);
+            spritePacman.setFrameDirection(1);
         }
         viewport.draw();
         //ƒ.AudioManager.default.update();
@@ -167,8 +174,8 @@ var Script;
         if (!_position || !_direction) {
             return false;
         }
-        let rowNumber = Math.trunc(_position.y) + _direction.y;
-        let nextElementNumber = Math.trunc(_position.x) + _direction.x;
+        let rowNumber = Math.floor(_position.y) + _direction.y;
+        let nextElementNumber = Math.floor(_position.x) + _direction.x;
         if (!nextElementNumber || !rowNumber || nextElementNumber < 1 || nextElementNumber > 23 || rowNumber < 1 || rowNumber > 13) {
             return false;
         }
@@ -199,7 +206,7 @@ var Script;
     function ghostWalks() {
         if (!checkPath(ghost.mtxLocal.translation, ghostWalk)) {
             let ghostDirections = [new ƒ.Vector3(1, 0, 0), new ƒ.Vector3(-1, 0, 0), new ƒ.Vector3(0, 1, 0), new ƒ.Vector3(0, -1, 0)];
-            let random = Math.round(Math.random() * ghostDirections.length);
+            let random = Math.floor(Math.random() * ghostDirections.length);
             ghostWalk = ghostDirections[random];
             while (!checkPath(ghost.mtxLocal.translation, ghostWalk)) {
                 ghostDirections.splice(ghostDirections.indexOf(ghostWalk), 1);
@@ -218,30 +225,34 @@ var Script;
         let sprite = new ƒAid.NodeSprite("Sprite");
         sprite.setAnimation(animation);
         sprite.setFrameDirection(1);
-        sprite.framerate = 15;
+        sprite.framerate = 30;
         let cmpTransfrom = new ƒ.ComponentTransform();
         sprite.addComponent(cmpTransfrom);
         sprite.cmpTransform.mtxLocal.translateZ(0.5);
         return sprite;
     } //createSprite
-    function rotatePacman(_direction) {
-        if (_direction.x != 0 || _direction.y != 0) {
-            let oldZ = spritePacman.mtxLocal.rotation.z;
-            let newZ = 360 - oldZ;
-            spritePacman.mtxLocal.rotateZ(newZ);
-            if (_direction.x == 1) {
-                spritePacman.mtxLocal.rotateZ(0);
-            }
-            if (_direction.x == -1) {
-                spritePacman.mtxLocal.rotateZ(180);
-            }
-            if (_direction.y == 1) {
-                spritePacman.mtxLocal.rotateZ(90);
-            }
-            if (_direction.y == -1) {
-                spritePacman.mtxLocal.rotateZ(270);
-            }
+    /* function rotatePacman(_direction: ƒ.Vector3): void {
+      if (_direction.x != 0 || _direction.y != 0) {
+        let oldZ: number = spritePacman.mtxLocal.rotation.z;
+        let newZ: number = 360 - oldZ;
+        spritePacman.mtxLocal.rotateZ(newZ);
+  
+        if (_direction.x == 1) {
+          spritePacman.mtxLocal.rotateZ(0);
         }
-    } //rotatePacman
+  
+        if (_direction.x == -1) {
+          spritePacman.mtxLocal.rotateZ(180);
+        }
+  
+        if (_direction.y == 1) {
+          spritePacman.mtxLocal.rotateZ(90);
+        }
+  
+        if (_direction.y == -1) {
+          spritePacman.mtxLocal.rotateZ(270);
+        }
+      }
+    } //rotatePacman */
 })(Script || (Script = {})); //namespace
 //# sourceMappingURL=Script.js.map

@@ -1,6 +1,7 @@
 namespace Script {
-    export class Ghost {
+    export class Ghost extends ƒ.Node {
         constructor() {
+            super("Ghost");
             let node: ƒ.Node = new ƒ.Node("Ghost");
             let mesh: ƒ.MeshSphere = new ƒ.MeshSphere();
             let material: ƒ.Material = new ƒ.Material("Ghost", ƒ.ShaderLit, new ƒ.CoatColored());

@@ -8,7 +8,7 @@ declare namespace Script {
     }
 }
 declare namespace Script {
-    class Ghost {
+    class Ghost extends ƒ.Node {
         constructor();
     }
 }

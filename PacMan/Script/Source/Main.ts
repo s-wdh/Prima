@@ -104,16 +104,23 @@ namespace Script {
     if (ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.ARROW_DOWN, ƒ.KEYBOARD_CODE.S]) && (pacman.mtxLocal.translation.x + 0.025) % 1 < 0.05)
       direction.set(0, -1, 0);
 
-    rotatePacman(direction);
+    //rotatePacman(direction);
     if (!checkPath(positionPacman, direction)) {
       direction.set(0, 0, 0);
     }
     pacman.mtxLocal.translate(ƒ.Vector3.SCALE(direction, speed));
 
+    if (direction.magnitudeSquared != 0) {
+      //spritePacman.mtxLocal.reset();
+      spritePacman.mtxLocal.rotation = new ƒ.Vector3(0, direction.x < 0 ? 180 : 0, direction.y * 90);
+    }
+
     if (direction.equals(ƒ.Vector3.ZERO())) {
       chomp.play(false)
+      spritePacman.setFrameDirection(0);
     } else if (!chomp.isPlaying) {
       chomp.play(true);
+      spritePacman.setFrameDirection(1);
     }
 
     viewport.draw();
@@ -125,8 +132,8 @@ namespace Script {
     if (!_position || !_direction) {
       return false;
     }
-    let rowNumber: number = Math.trunc(_position.y) + _direction.y;
-    let nextElementNumber: number = Math.trunc(_position.x) + _direction.x;
+    let rowNumber: number = Math.floor(_position.y) + _direction.y;
+    let nextElementNumber: number = Math.floor(_position.x) + _direction.x;
     if (!nextElementNumber || !rowNumber || nextElementNumber < 1 || nextElementNumber > 23 || rowNumber < 1 || rowNumber > 13) {
       return false;
     }
@@ -160,7 +167,7 @@ namespace Script {
   function ghostWalks(): void {
     if (!checkPath(ghost.mtxLocal.translation, ghostWalk)) {
       let ghostDirections: ƒ.Vector3[] = [new ƒ.Vector3(1, 0, 0), new ƒ.Vector3(-1, 0, 0), new ƒ.Vector3(0, 1, 0), new ƒ.Vector3(0, -1, 0)];
-      let random: number = Math.round(Math.random() * ghostDirections.length);
+      let random: number = Math.floor(Math.random() * ghostDirections.length);
       ghostWalk = ghostDirections[random];
       while (!checkPath(ghost.mtxLocal.translation, ghostWalk)) {
         ghostDirections.splice(ghostDirections.indexOf(ghostWalk), 1);
@@ -182,7 +189,7 @@ namespace Script {
     let sprite: ƒAid.NodeSprite = new ƒAid.NodeSprite("Sprite");
     sprite.setAnimation(animation);
     sprite.setFrameDirection(1);
-    sprite.framerate = 15;
+    sprite.framerate = 30;
 
     let cmpTransfrom: ƒ.ComponentTransform = new ƒ.ComponentTransform();
     sprite.addComponent(cmpTransfrom);
@@ -191,7 +198,7 @@ namespace Script {
     return sprite;
   } //createSprite
 
-  function rotatePacman(_direction: ƒ.Vector3): void {
+  /* function rotatePacman(_direction: ƒ.Vector3): void {
     if (_direction.x != 0 || _direction.y != 0) {
       let oldZ: number = spritePacman.mtxLocal.rotation.z;
       let newZ: number = 360 - oldZ;
@@ -213,6 +220,6 @@ namespace Script {
         spritePacman.mtxLocal.rotateZ(270);
       }
     }
-  } //rotatePacman
+  } //rotatePacman */
 
 } //namespace
