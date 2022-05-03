@@ -38,7 +38,7 @@
       "shader": "ShaderLit",
       "coat": {
         "ƒ.CoatColored": {
-          "color": "[1, 1, 1, 1]"
+          "color": "[0.27058823529411763, 0.27058823529411763, 0.27058823529411763, 1]"
         }
       }
     }
@@ -516,7 +516,7 @@
                           },
                           "light": {
                             "ƒ.LightAmbient": {
-                              "color": "[0.25098039215686274, 0.25098039215686274, 0.25098039215686274, 1]"
+                              "color": "[0.07058823529411765, 0.07058823529411765, 0.07058823529411765, 1]"
                             }
                           },
                           "Component": {
@@ -588,7 +588,12 @@
                       {
                         "Script.Slenderman": {
                           "active": true,
-                          "message": "Slenderman walks"
+                          "message": "CustomComponentScript added to ",
+                          "target": {
+                            "x": 0,
+                            "y": 0,
+                            "z": 0
+                          }
                         }
                       }
                     ],
@@ -645,7 +650,7 @@
                           "pivot": {
                             "translation": "[0, 1.2999999523162842, 0]",
                             "rotation": "[0, 0, 0]",
-                            "scaling": "[10, 12, 90]"
+                            "scaling": "[10, 15, 100]"
                           },
                           "light": {
                             "ƒ.LightSpot": {

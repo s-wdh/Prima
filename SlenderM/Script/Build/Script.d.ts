@@ -12,6 +12,7 @@ declare namespace Script {
     class DropToGroundInitial extends ƒ.ComponentScript {
         static readonly iSubclass: number;
         graph: ƒ.Node;
+        environment: ƒ.Node;
         ground: ƒ.Node;
         cmpMeshOfGround: ƒ.ComponentMesh;
         meshTerrain: ƒ.MeshTerrain;
@@ -32,6 +33,5 @@ declare namespace Script {
         target: ƒ.Vector3;
         constructor();
         hndEvent: (_event: Event) => void;
-        private move;
     }
 }

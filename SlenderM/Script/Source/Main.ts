@@ -25,7 +25,7 @@ namespace Script {
     let canvas: HTMLCanvasElement = viewport.getCanvas();
     canvas.addEventListener("pointermove", handlePointerMove);
     canvas.requestPointerLock();
-
+    
     document.body.style.cursor = "crosshair";
 
     ƒ.Loop.addEventListener(ƒ.EVENT.LOOP_FRAME, update);
@@ -44,17 +44,27 @@ namespace Script {
     let input: number = ƒ.Keyboard.mapToTrit([ƒ.KEYBOARD_CODE.W, ƒ.KEYBOARD_CODE.ARROW_UP], [ƒ.KEYBOARD_CODE.S, ƒ.KEYBOARD_CODE.ARROW_DOWN]);
     cntWalk.setInput(input);
     player.mtxLocal.translateZ(cntWalk.getOutput() * ƒ.Loop.timeFrameGame / 1000);
+    if (player.mtxLocal.translation.z > 30) {
+      player.mtxLocal.translation.z = 30;
+    } else if (player.mtxLocal.translation.z < -30) {
+      player.mtxLocal.translation.z = -30;
+    }
 
     let strafe: number = ƒ.Keyboard.mapToTrit([ƒ.KEYBOARD_CODE.A, ƒ.KEYBOARD_CODE.ARROW_LEFT], [ƒ.KEYBOARD_CODE.D, ƒ.KEYBOARD_CODE.ARROW_RIGHT]);
     cntWalk.setInput(strafe);
     player.mtxLocal.translateX(cntWalk.getOutput() * ƒ.Loop.timeFrameGame / 1000);
+    if (player.mtxLocal.translation.x > 30) {
+      player.mtxLocal.translation.x = 30;
+    } else if (player.mtxLocal.translation.x < -30) {
+      player.mtxLocal.translation.x = -30;
+    }
   } //controlWalk
 
   function adaptSpeed(): void {
     if (ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.R]) && ableToSprint == true) {
       energy -= ƒ.Loop.timeFrameGame / 1000;
       if (energy <= 0) {
-        ableToSprint = false
+        ableToSprint = false;
       }
     } else if (!ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.R]) && ableToSprint == true) {
       if (energy < 5) {
@@ -71,7 +81,6 @@ namespace Script {
   } //adaptSpeed
 
   function handlePointerMove(_event: PointerEvent): void {
-    console.log(_event);
     player.mtxLocal.rotateY(_event.movementX * speedRotY);
     rotationX += _event.movementY * speedRotX;
     rotationX = Math.min(60, Math.max(-60, rotationX));

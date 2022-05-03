@@ -44,10 +44,11 @@ var Script;
         // Register the script as component for use in the editor via drag&drop
         static iSubclass = ƒ.Component.registerSubclass(DropToGroundInitial);
         // Properties may be mutated by users in the editor via the automatically created user interface
-        graph = ƒ.Project.resources["Graph|2022-04-28T12:10:55.160Z|97133"];
-        ground = this.graph.getChildrenByName("Environment")[0].getChildrenByName("Ground")[0];
-        cmpMeshOfGround = this.ground.getComponent(ƒ.ComponentMesh);
-        meshTerrain = this.cmpMeshOfGround.mesh;
+        graph;
+        environment;
+        ground;
+        cmpMeshOfGround;
+        meshTerrain;
         constructor() {
             super();
             // Don't start when running in editor
@@ -65,10 +66,15 @@ var Script;
             }
         };
         adaptPosition = () => {
-            let distance = this.meshTerrain.getTerrainInfo(this.node.mtxLocal.translation, this.cmpMeshOfGround.mtxWorld).distance;
+            this.graph = ƒ.Project.resources["Graph|2022-04-14T13:11:49.215Z|97520"];
+            this.environment = this.graph.getChildrenByName("Environment")[0];
+            this.ground = this.environment.getChildrenByName("Ground")[0];
+            this.cmpMeshOfGround = this.ground.getComponent(ƒ.ComponentMesh);
+            this.meshTerrain = this.cmpMeshOfGround.mesh;
+            /* let distance: number = this.meshTerrain.getTerrainInfo(this.node.mtxLocal.translation, this.cmpMeshOfGround.mtxWorld).distance;
             if (distance != 0) {
-                this.node.mtxLocal.translateY(-distance);
-            }
+              this.node.mtxLocal.translateY(- distance);
+            } */
         };
     }
     Script.DropToGroundInitial = DropToGroundInitial;
@@ -111,9 +117,21 @@ var Script;
         let input = ƒ.Keyboard.mapToTrit([ƒ.KEYBOARD_CODE.W, ƒ.KEYBOARD_CODE.ARROW_UP], [ƒ.KEYBOARD_CODE.S, ƒ.KEYBOARD_CODE.ARROW_DOWN]);
         cntWalk.setInput(input);
         player.mtxLocal.translateZ(cntWalk.getOutput() * ƒ.Loop.timeFrameGame / 1000);
+        if (player.mtxLocal.translation.z > 30) {
+            player.mtxLocal.translation.z = 30;
+        }
+        else if (player.mtxLocal.translation.z < -30) {
+            player.mtxLocal.translation.z = -30;
+        }
         let strafe = ƒ.Keyboard.mapToTrit([ƒ.KEYBOARD_CODE.A, ƒ.KEYBOARD_CODE.ARROW_LEFT], [ƒ.KEYBOARD_CODE.D, ƒ.KEYBOARD_CODE.ARROW_RIGHT]);
         cntWalk.setInput(strafe);
         player.mtxLocal.translateX(cntWalk.getOutput() * ƒ.Loop.timeFrameGame / 1000);
+        if (player.mtxLocal.translation.x > 30) {
+            player.mtxLocal.translation.x = 30;
+        }
+        else if (player.mtxLocal.translation.x < -30) {
+            player.mtxLocal.translation.x = -30;
+        }
     } //controlWalk
     function adaptSpeed() {
         if (ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.R]) && ableToSprint == true) {
@@ -137,7 +155,6 @@ var Script;
         }
     } //adaptSpeed
     function handlePointerMove(_event) {
-        console.log(_event);
         player.mtxLocal.rotateY(_event.movementX * speedRotY);
         rotationX += _event.movementY * speedRotX;
         rotationX = Math.min(60, Math.max(-60, rotationX));
@@ -166,17 +183,9 @@ var Script;
         hndEvent = (_event) => {
             switch (_event.type) {
                 case "componentAdd" /* COMPONENT_ADD */:
-                    this.node.addEventListener("renderPrepare" /* RENDER_PREPARE */, this.move);
+                    //this.node.addEventListener(ƒ.EVENT.RENDER_PREPARE, this.move);
                     break;
             }
-        };
-        move = (_event) => {
-            let currentPosition = this.node.mtxLocal.clone.translation;
-            currentPosition.add(ƒ.Vector3.SCALE(this.target, ƒ.Loop.timeFrameGame / 1000));
-            if (currentPosition.x < 30 && currentPosition.y < 30 && currentPosition.x > -30 && currentPosition.y > -30)
-                this.node.mtxLocal.translate(ƒ.Vector3.SCALE(this.target, ƒ.Loop.timeFrameGame / 1000));
-            //change target, so the movement is random
-            this.target = ƒ.Random.default.getVector3(new ƒ.Vector3(-1, 0, -1), new ƒ.Vector3(1, 0, 1));
         };
     }
     Script.Slenderman = Slenderman;
