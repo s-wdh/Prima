@@ -6,9 +6,10 @@ namespace Script {
         // Register the script as component for use in the editor via drag&drop
         public static readonly iSubclass: number = ƒ.Component.registerSubclass(CustomComponentScript);
         // Properties may be mutated by users in the editor via the automatically created user interface
-        public message: string = "CustomComponentScript added to ";
 
-        public target: ƒ.Vector3 = ƒ.Vector3.ZERO();
+        //public target: ƒ.Vector3 = ƒ.Vector3.ZERO();
+        /* private timeToChange: number = 0;
+        private direction: ƒ.Vector3 = ƒ.Vector3.ZERO(); */
 
 
         constructor() {
@@ -32,13 +33,18 @@ namespace Script {
         }
 
         /* private move = (_event: Event): void => {
-            let currentPosition: ƒ.Vector3 = this.node.mtxLocal.clone.translation;
-            currentPosition.add(ƒ.Vector3.SCALE(this.target, ƒ.Loop.timeFrameGame / 1000));
-            if (currentPosition.x < 30 && currentPosition.z < 30 && currentPosition.x > -30 && currentPosition.z > -30)
-                this.node.mtxLocal.translate(ƒ.Vector3.SCALE(this.target, ƒ.Loop.timeFrameGame / 1000));
+            this.node.mtxLocal.translate(ƒ.Vector3.SCALE(this.direction, ƒ.Loop.timeFrameGame / 1000));
+            //let currentPosition: ƒ.Vector3 = this.node.mtxLocal.clone.translation;
+            //currentPosition.add(ƒ.Vector3.SCALE(this.target, ƒ.Loop.timeFrameGame / 1000));
+            //if (currentPosition.x < 30 && currentPosition.z < 30 && currentPosition.x > -30 && currentPosition.z > -30)
+            //    this.node.mtxLocal.translate(ƒ.Vector3.SCALE(this.target, ƒ.Loop.timeFrameGame / 1000));
 
-            //change target, so the movement is random
-            this.target = ƒ.Random.default.getVector3(new ƒ.Vector3(-1, 0, -1), new ƒ.Vector3(1,0,1));
+            if (this.timeToChange > ƒ.Time.game.get())
+                return;
+
+            this.timeToChange = ƒ.Time.game.get() + 1000;
+
+            this.direction = ƒ.Random.default.getVector3(new ƒ.Vector3(-1, 0, -1), new ƒ.Vector3(1, 0, 1));
         } */
 
         // protected reduceMutator(_mutator: ƒ.Mutator): void {

@@ -7,8 +7,7 @@ namespace Script {
     public static readonly iSubclass: number = ƒ.Component.registerSubclass(DropToGroundInitial);
     // Properties may be mutated by users in the editor via the automatically created user interface
 
-    public graph: ƒ.Node;
-    public environment: ƒ.Node;
+    public graph: ƒ.Graph;
     public ground: ƒ.Node;
     public cmpMeshOfGround: ƒ.ComponentMesh;
     public meshTerrain: ƒ.MeshTerrain;
@@ -35,15 +34,17 @@ namespace Script {
 
     public adaptPosition = (): void => {
       this.graph = <ƒ.Graph>ƒ.Project.resources["Graph|2022-04-14T13:11:49.215Z|97520"];
-      this.environment = this.graph.getChildrenByName("Environment")[0];
-      this.ground = this.environment.getChildrenByName("Ground")[0];
+      this.ground = this.graph.getChildrenByName("Environment")[0].getChildrenByName("Ground")[0];
       this.cmpMeshOfGround = this.ground.getComponent(ƒ.ComponentMesh);
       this.meshTerrain = <ƒ.MeshTerrain>this.cmpMeshOfGround.mesh;
 
-      /* let distance: number = this.meshTerrain.getTerrainInfo(this.node.mtxLocal.translation, this.cmpMeshOfGround.mtxWorld).distance;
-      if (distance != 0) {
-        this.node.mtxLocal.translateY(- distance);
-      } */
+      if (!this.node == undefined) {
+        let distance: number = this.meshTerrain.getTerrainInfo(this.node.mtxLocal.translation, this.cmpMeshOfGround.mtxWorld)?.distance;
+        if (distance != 0) {
+          this.node.mtxLocal.translateY(-distance);
+        }
+      }
+
     }
   }
 }

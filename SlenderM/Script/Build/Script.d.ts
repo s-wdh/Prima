@@ -11,8 +11,7 @@ declare namespace Script {
     import ƒ = FudgeCore;
     class DropToGroundInitial extends ƒ.ComponentScript {
         static readonly iSubclass: number;
-        graph: ƒ.Node;
-        environment: ƒ.Node;
+        graph: ƒ.Graph;
         ground: ƒ.Node;
         cmpMeshOfGround: ƒ.ComponentMesh;
         meshTerrain: ƒ.MeshTerrain;
@@ -29,9 +28,16 @@ declare namespace Script {
     import ƒ = FudgeCore;
     class Slenderman extends ƒ.ComponentScript {
         static readonly iSubclass: number;
-        message: string;
-        target: ƒ.Vector3;
         constructor();
         hndEvent: (_event: Event) => void;
+    }
+}
+declare namespace Script {
+    import ƒ = FudgeCore;
+    class Tree extends ƒ.Node {
+        treeBlueprint: ƒ.Graph;
+        tree: ƒ.GraphInstance;
+        treeRigid: ƒ.ComponentRigidbody;
+        constructor(_position: ƒ.Vector3);
     }
 }
