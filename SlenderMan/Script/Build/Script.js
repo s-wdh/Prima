@@ -1,4 +1,54 @@
 "use strict";
+///<reference path="../../../../FUDGE/Net/Build/Client/FudgeClient.d.ts"/>
+var Script;
+///<reference path="../../../../FUDGE/Net/Build/Client/FudgeClient.d.ts"/>
+(function (Script) {
+    var ƒ = FudgeCore;
+    var ƒClient = FudgeNet.FudgeClient;
+    ƒ.Debug.setFilter(ƒ.DebugConsole, ƒ.DEBUG_FILTER.ALL);
+    // Create a FudgeClient for this browser tab
+    let client = new ƒClient();
+    window.addEventListener("load", start);
+    async function start(_event) {
+        connectToServer(_event);
+        sendMessage();
+    }
+    async function connectToServer(_event) {
+        let domServer = document.forms[0].querySelector("input[name=server");
+        try {
+            // connect to a server with the given url
+            client.connectToServer(domServer.value);
+            // install an event listener to be called when a message comes in
+            client.addEventListener(FudgeNet.EVENT.MESSAGE_RECEIVED, receiveMessage);
+        }
+        catch (_error) {
+            console.log(_error);
+            console.log("Make sure, FudgeServer is running and accessable");
+        }
+    }
+    async function receiveMessage(_event) {
+        if (_event instanceof MessageEvent) {
+            let message = JSON.parse(_event.data);
+            createOtherPlayers(message);
+        }
+    }
+    function sendMessage() {
+        let message = JSON.stringify(Script.player.mtxWorld.clone);
+        console.log(message);
+        // send the message via TCP (route = via server)
+        client.dispatch({ route: FudgeNet.ROUTE.VIA_SERVER, content: { text: message } });
+    }
+    Script.sendMessage = sendMessage;
+    function createOtherPlayers(_position) {
+        let player = new ƒ.Node("player");
+        let mesh = new ƒ.ComponentMesh(new ƒ.MeshCube());
+        player.addComponent(mesh);
+        player.addComponent(new ƒ.ComponentTransform());
+        player.cmpTransform.mtxLocal = _position;
+        let players = Script.environment.getChildrenByName("Players")[0];
+        players.addChild(player);
+    }
+})(Script || (Script = {}));
 var Script;
 (function (Script) {
     var ƒ = FudgeCore;
@@ -82,10 +132,23 @@ var Script;
 var Script;
 (function (Script) {
     var ƒ = FudgeCore;
+    var ƒUi = FudgeUserInterface;
+    class GameState extends ƒ.Mutable {
+        battery = 1;
+        constructor() {
+            super();
+            let domVui = document.querySelector("div#vui");
+            console.log(new ƒUi.Controller(this, domVui));
+        }
+        reduceMutator(_mutator) { }
+    }
+    Script.GameState = GameState;
+})(Script || (Script = {}));
+var Script;
+(function (Script) {
+    var ƒ = FudgeCore;
     ƒ.Debug.info("Main Program Template running!");
     let graph;
-    let environment;
-    let player;
     let camera;
     let speedRotY = -0.1;
     let speedRotX = 0.2;
@@ -93,52 +156,65 @@ var Script;
     let cntWalk = new ƒ.Control("cntWalk", 6, 0 /* PROPORTIONAL */, 500);
     let ableToSprint = true;
     let energy = 5;
+    let gameState;
+    let config;
     document.addEventListener("interactiveViewportStarted", start);
-    function start(_event) {
+    async function start(_event) {
         Script.viewport = _event.detail;
         graph = Script.viewport.getBranch();
-        player = graph.getChildrenByName("Player")[0];
-        camera = player.getChildrenByName("Camera")[0].getComponent(ƒ.ComponentCamera);
+        Script.player = graph.getChildrenByName("Player")[0];
+        camera = Script.player.getChildrenByName("Camera")[0].getComponent(ƒ.ComponentCamera);
         Script.viewport.camera = camera;
-        environment = graph.getChildrenByName("Environment")[0];
+        Script.environment = graph.getChildrenByName("Environment")[0];
+        gameState = new Script.GameState();
+        let response = await fetch("config.json");
+        config = await response.json();
+        console.log(config);
         let canvas = Script.viewport.getCanvas();
         canvas.addEventListener("pointermove", handlePointerMove);
         canvas.requestPointerLock();
-        createTrees();
         //document.body.style.cursor = "crosshair";
+        document.addEventListener("keydown", hndKeydown);
+        createTrees();
+        Script.environment.addChild(new ƒ.Node("Players"));
         ƒ.Loop.addEventListener("loopFrame" /* LOOP_FRAME */, update);
+        initAnim();
         ƒ.Loop.start(); // start the game loop to continously draw the viewport, update the audiosystem and drive the physics i/a
     } //start
     function update(_event) {
         ƒ.Physics.simulate(); // if physics is included and used
         controlWalk();
         adaptSpeed();
+        gameState.battery -= config["drain"];
+        document.querySelector("input").value = gameState.battery.toString(); //String(battery)
         Script.viewport.draw();
         ƒ.AudioManager.default.update();
     } //update
     function controlWalk() {
         let input = ƒ.Keyboard.mapToTrit([ƒ.KEYBOARD_CODE.W, ƒ.KEYBOARD_CODE.ARROW_UP], [ƒ.KEYBOARD_CODE.S, ƒ.KEYBOARD_CODE.ARROW_DOWN]);
         cntWalk.setInput(input);
-        player.mtxLocal.translateZ(cntWalk.getOutput() * ƒ.Loop.timeFrameGame / 1000);
-        if (player.mtxLocal.translation.z > 30) {
-            player.mtxLocal.translation.z = 30;
+        Script.player.mtxLocal.translateZ(cntWalk.getOutput() * ƒ.Loop.timeFrameGame / 1000);
+        if (Script.player.mtxLocal.translation.z > 30) {
+            Script.player.mtxLocal.translation.z = 30;
         }
-        else if (player.mtxLocal.translation.z < -30) {
-            player.mtxLocal.translation.z = -30;
+        else if (Script.player.mtxLocal.translation.z < -30) {
+            Script.player.mtxLocal.translation.z = -30;
         }
+        //let vector = new ƒ.Vector3((1.5 * input * ƒ.Loop.timeFrameGame / 20), 0, (cntWalk.getOutput() * ƒ.Loop.timeFrameGame / 30));
         let strafe = ƒ.Keyboard.mapToTrit([ƒ.KEYBOARD_CODE.A, ƒ.KEYBOARD_CODE.ARROW_LEFT], [ƒ.KEYBOARD_CODE.D, ƒ.KEYBOARD_CODE.ARROW_RIGHT]);
-        player.mtxLocal.translateX(1.5 * strafe * ƒ.Loop.timeFrameGame / 1000);
-        if (player.mtxLocal.translation.x > 30) {
-            player.mtxLocal.translation.x = 30;
+        Script.player.mtxLocal.translateX(1.5 * strafe * ƒ.Loop.timeFrameGame / 1000);
+        if (Script.player.mtxLocal.translation.x > 30) {
+            Script.player.mtxLocal.translation.x = 30;
         }
-        else if (player.mtxLocal.translation.x < -30) {
-            player.mtxLocal.translation.x = -30;
+        else if (Script.player.mtxLocal.translation.x < -30) {
+            Script.player.mtxLocal.translation.x = -30;
         }
-    } //controlWalk
+        Script.sendMessage();
+    } //controlWalk  
     function adaptSpeed() {
         if (ƒ.Keyboard.isPressedOne([ƒ.KEYBOARD_CODE.R]) && ableToSprint == true) {
             energy -= ƒ.Loop.timeFrameGame / 1000;
-            player.mtxLocal.translateZ(4 * cntWalk.getOutput() * ƒ.Loop.timeFrameGame / 1000);
+            Script.player.mtxLocal.translateZ(4 * cntWalk.getOutput() * ƒ.Loop.timeFrameGame / 1000);
             if (energy <= 0) {
                 ableToSprint = false;
             }
@@ -153,13 +229,13 @@ var Script;
         }
     } //adaptSpeed
     function handlePointerMove(_event) {
-        player.mtxLocal.rotateY(_event.movementX * speedRotY);
+        Script.player.mtxLocal.rotateY(_event.movementX * speedRotY);
         rotationX += _event.movementY * speedRotX;
         rotationX = Math.min(60, Math.max(-60, rotationX));
         camera.mtxPivot.rotation = ƒ.Vector3.X(rotationX);
     } //handlePointerMove
     function createTrees() {
-        let forest = environment.getChildrenByName("Trees")[0];
+        let forest = Script.environment.getChildrenByName("Trees")[0];
         for (let i = 0; i < 100; i++) {
             let position = ƒ.Random.default.getVector3(new ƒ.Vector3(-30, 0, -30), new ƒ.Vector3(30, 0, 30));
             let roundedPosition = new ƒ.Vector3(Math.round(position.x), Math.round(position.y), Math.round(position.z));
@@ -167,7 +243,72 @@ var Script;
             forest.addChild(tree);
         }
     }
+    function hndKeydown(_event) {
+        if (_event.code != ƒ.KEYBOARD_CODE.SPACE)
+            return;
+        let torch = Script.player.getChildrenByName("Torch")[0];
+        torch.activate(!torch.isActive);
+        torch.dispatchEvent(new Event("toggleTorch", { bubbles: true }));
+    }
+    function initAnim() {
+        let animseq = new ƒ.AnimationSequence();
+        animseq.addKey(new ƒ.AnimationKey(0, 10));
+        animseq.addKey(new ƒ.AnimationKey(500, 5));
+        animseq.addKey(new ƒ.AnimationKey(1000, 0));
+        animseq.addKey(new ƒ.AnimationKey(1500, 5));
+        animseq.addKey(new ƒ.AnimationKey(2000, 10));
+        let animStructure = {
+            components: {
+                ComponentTransform: [
+                    {
+                        "ƒ.ComponentTransform": {
+                            mtxLocal: {
+                                rotation: {
+                                    x: animseq,
+                                    y: animseq
+                                }
+                            }
+                        }
+                    }
+                ]
+            }
+        };
+        let animation = new ƒ.Animation("testAnimation", animStructure);
+        let stone = Script.environment.getChildrenByName("Stone")[0];
+        let cmpAnimator = new ƒ.ComponentAnimator(animation, ƒ.ANIMATION_PLAYMODE.LOOP);
+        stone.addComponent(cmpAnimator);
+        cmpAnimator.activate(true);
+    }
 })(Script || (Script = {})); //namespace
+/**
+ * Minimal implementation showing the use of the FudgeServer.
+ * Start with `node Server.js <port>`, Heroku uses the start-script in package.json
+ * @author Jirka Dell'Oro-Friedl, HFU, 2021
+ */
+System.register("Server", ["../../../../FUDGE/Net/Build/Server/FudgeServer.js"], function (exports_1, context_1) {
+    "use strict";
+    var FudgeServer_js_1, port, server;
+    var __moduleName = context_1 && context_1.id;
+    return {
+        setters: [
+            function (FudgeServer_js_1_1) {
+                FudgeServer_js_1 = FudgeServer_js_1_1;
+            }
+        ],
+        execute: function () {
+            port = process.env.PORT;
+            if (port == undefined)
+                port = parseInt(process.argv[2]);
+            if (!port) {
+                console.log("Syntax: 'node Server.js <port>' or use start script in Heroku");
+                process.exit();
+            }
+            server = new FudgeServer_js_1.FudgeServer();
+            server.startUp(port);
+            console.log(server);
+        }
+    };
+});
 var Script;
 (function (Script) {
     var ƒ = FudgeCore;

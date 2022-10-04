@@ -1,3 +1,7 @@
+/// <reference path="../../../../FUDGE/Net/Build/Client/FudgeClient.d.ts" />
+declare namespace Script {
+    function sendMessage(): void;
+}
 declare namespace Script {
     import ƒ = FudgeCore;
     class CustomComponentScript extends ƒ.ComponentScript {
@@ -22,8 +26,19 @@ declare namespace Script {
 }
 declare namespace Script {
     import ƒ = FudgeCore;
-    let viewport: ƒ.Viewport;
+    class GameState extends ƒ.Mutable {
+        battery: number;
+        constructor();
+        protected reduceMutator(_mutator: ƒ.Mutator): void;
+    }
 }
+declare namespace Script {
+    import ƒ = FudgeCore;
+    let viewport: ƒ.Viewport;
+    let environment: ƒ.Node;
+    let player: ƒ.Node;
+}
+declare module "Server" { }
 declare namespace Script {
     import ƒ = FudgeCore;
     class Slenderman extends ƒ.ComponentScript {
