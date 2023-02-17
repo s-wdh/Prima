@@ -1,0 +1,46 @@
+html, body {
+  padding: 0px;
+  margin: 0px;
+  width: 100%;
+  height: 100%;
+ overflow: hidden;
+}
+
+dialog { 
+  text-align: center; 
+}
+
+canvas.fullscreen { 
+  width: 100vw; 
+  height: 100vh; 
+  background-color: lightblue;
+}
+
+#vui {
+  position: absolute;
+  bottom: 10px;
+  padding: 5px;
+  background-color: lightblue;
+}
+
+#star1 {
+  position: absolute;
+  top: 50px;
+  left: 25vw;
+  z-index: 2;
+  display: none;
+}
+#star2 {
+  position: absolute;
+  top: 50px;
+  left: 50vw;
+  z-index: 2;
+  display: none;
+}
+#star3 {
+  position: absolute;
+  top: 50px;
+  left: 75vw;
+  z-index: 2;
+  display: none;
+}

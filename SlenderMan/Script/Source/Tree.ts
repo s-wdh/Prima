@@ -8,7 +8,7 @@ namespace Script {
         treeRigid: ƒ.ComponentRigidbody;
 
         constructor(_position: ƒ.Vector3) {
-            super("Tree")
+            super("Tree");
             // Don't start when running in editor
             if (ƒ.Project.mode == ƒ.MODE.EDITOR)
                 return;
